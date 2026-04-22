@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>晴雨·雅集</title>
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden; /* 视差效果需要隐藏溢出 */
+            /* 👇👇👇 替换成你自己的背景图片链接 👇👇👇 */
+            background-image: url(''./images/bg.jpg'');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-position 0.1s ease-out;
+        }
+
+        /* 半透明遮罩层，增加文字可读性，同时保留背景可见 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(2px);
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            z-index: 2;
+        }
+
+        /* 简约高端卡片：低饱和度玻璃效果 */
+        .glass-panel {
+            background: rgba(20, 20, 30, 0.3);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 2.5rem;
+            padding: 2.2rem 2.5rem;
+            box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.3), 
+                        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            box-shadow: 0 30px 50px -12px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+        }
+
+        h1 {
+            font-weight: 400;
+            font-size: 2.4rem;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 0.8rem;
+        }
+
+        h1 i {
+            font-size: 2rem;
+            opacity: 0.8;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        h2 {
+            font-weight: 350;
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* 天气搜索区域 */
+        .weather-section {
+            margin-bottom: 2.8rem;
+        }
+
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            max-width: 460px;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            padding: 0.9rem 1.4rem;
+            border: none;
+            border-radius: 60px;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.25);
+            font-size: 1rem;
+            color: white;
+            outline: none;
+            transition: all 0.25s;
+            font-weight: 300;
+        }
+
+        .search-wrapper input::placeholder {
+            color: rgba(255,255,255,0.7);
+            font-weight: 300;
+        }
+
+        .search-wrapper input:focus {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.6);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .search-wrapper button {
+            padding: 0.9rem 1.8rem;
+            border: none;
+            border-radius: 60px;
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(8px);
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1a1f2c;
+            border: 1px solid rgba(255,255,255,0.5);
+            letter-spacing: 0.3px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .search-wrapper button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+
+        .search-wrapper button:active {
+            transform: translateY(1px);
+        }
+
+        /* 天气主展示 */
+        .weather-main {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .temp-area {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .temp-value {
+            font-size: 5.5rem;
+            font-weight: 200;
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+
+        .temp-unit {
+            font-size: 2rem;
+            font-weight: 200;
+            opacity: 0.8;
+        }
+
+        .city-status {
+            font-size: 1.6rem;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .weather-icon {
+            font-size: 3rem;
+            filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
+            animation: floatIcon 4s infinite ease-in-out;
+        }
+
+        .weather-desc {
+            text-transform: capitalize;
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .detail-grid {
+            display: flex;
+            gap: 25px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .detail-chip {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(5px);
+            padding: 0.5rem 1.4rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 300;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .detail-chip i {
+            opacity: 0.8;
+            width: 20px;
+            text-align: center;
+        }
+
+        .fun-message {
+            margin-top: 18px;
+            font-style: italic;
+            font-weight: 300;
+            background: rgba(255,255,240,0.1);
+            display: inline-block;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            backdrop-filter: blur(5px);
+            border-left: 3px solid #ffe082;
+            animation: slideIn 0.6s;
+        }
+
+        /* 软件下载区域 */
+        .software-section {
+            margin-top: 0.8rem;
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1rem;
+        }
+
+        .soft-link {
+            background: rgba(20, 25, 35, 0.3);
+            backdrop-filter: blur(8px);
+            padding: 1rem 0.5rem;
+            border-radius: 28px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            font-weight: 400;
+            font-size: 1rem;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .soft-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .soft-link:hover::before {
+            left: 100%;
+        }
+
+        .soft-link i {
+            font-size: 2.2rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            transition: transform 0.2s;
+            animation: floatIcon 3s infinite ease-in-out;
+        }
+
+        .soft-link:hover {
+            background: rgba(60, 70, 90, 0.45);
+            transform: translateY(-6px) scale(1.02);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 15px 25px -8px rgba(0,0,0,0.3);
+        }
+
+        .soft-link:hover i {
+            transform: scale(1.1);
+        }
+
+        .soft-link span {
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .footer-meta {
+            margin-top: 1.8rem;
+            text-align: right;
+            font-size: 0.8rem;
+            opacity: 0.65;
+            font-weight: 300;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .credit i {
+            margin: 0 4px;
+        }
+
+        .loading-placeholder, .error-placeholder {
+            padding: 0.5rem 0;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .glass-panel {
+                padding: 1.8rem 1.5rem;
+                border-radius: 2rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .temp-value {
+                font-size: 4rem;
+            }
+            .search-wrapper {
+                flex-direction: column;
+            }
+            .city-status {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass-panel">
+        <h1>
+            <i class="fas fa-cloud-moon"></i> 
+            晴雨雅集
+        </h1>
+
+        <!-- 天气模块 -->
+        <div class="weather-section">
+            <h2><i class="fas fa-location-dot" style="margin-right: 8px;"></i>此刻 · 天气</h2>
+            <div class="search-wrapper">
+                <input type="text" id="cityInput" placeholder="城市名 (如 Shanghai, Tokyo)" value="Shanghai">
+                <button id="searchBtn"><i class="fas fa-magnifying-glass"></i> 寻云</button>
+            </div>
+            <div id="weatherWidget">
+                <div class="loading-placeholder"><i class="fas fa-spinner fa-pulse"></i> 读取云图...</div>
+            </div>
+        </div>
+
+        <!-- 软件下载链接区域 -->
+        <div class="software-section">
+            <h2><i class="fas fa-compass"></i> 雅器·直通</h2>
+            <div class="link-grid">
+                <!-- 
+                    👇👇👇 替换软件链接说明 👇👇👇
+                    1. href 属性里填入你的目标网址
+                    2. <i> 里的图标可以换成你喜欢的 Font Awesome 图标名
+                    3. <span> 里的文字改成你想要的软件名
+                    示例： <a href="https://你的链接1.com" target="_blank" class="soft-link">
+                -->
+                <a href="https://www.google.com/chrome/" target="_blank" rel="noopener" class="soft-link">
+                    <i class="fab fa-chrome"></i>
+                    <span>Chrome</span>
+                </a>
+                <a href="https://code.visualstudio.com/" target="_blank" rel="noopener" class="soft-link">
+                    <i class="fas fa-code"></i>
+                    <span>VS Code</span>
+                </a>
+                <a href="https://git-scm.com/" target="_blank" rel="noopener" class="soft-link">
+                    <i class="fab fa-git-alt"></i>
+                    <span>Git</span>
+                </a>
+                <a href="https://www.python.org/downloads/" target="_blank" rel="noopener" class="soft-link">
+                    <i class="fab fa-python"></i>
+                    <span>Python</span>
+                </a>
+                <!-- 更多链接按同样格式添加即可 -->
+            </div>
+<div class="footer-meta">
+    <span class="credit"><i class="far fa-image"></i> 背景 · 可替换为你自己的图片</span>
+    <span style="display: flex; align-items: center; gap: 15px;">
+        <span style="font-weight: 400; letter-spacing: 2px; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 30px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2);">Z1</span>
+              <span>🌤️ Open-Meteo</span>
+            </span>
+          </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        "use strict";
+
+        // ---------- 配置 ----------
+        const DEFAULT_CITY = 'Shanghai';   // 默认上海天气
+        const WEATHER_API_GEO = 'https://geocoding-api.open-meteo.com/v1/search';
+        const WEATHER_API_FORECAST = 'https://api.open-meteo.com/v1/forecast';
+
+        // DOM 元素
+        const widget = document.getElementById('weatherWidget');
+        const cityInput = document.getElementById('cityInput');
+        const searchBtn = document.getElementById('searchBtn');
+
+        // 天气图标映射
+        const weatherIconMap = {
+            0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 
+            45: '🌫️', 48: '🌫️',
+            51: '🌦️', 53: '🌦️', 55: '🌧️',
+            61: '🌧️', 63: '🌧️', 65: '🌧️',
+            71: '🌨️', 73: '🌨️', 75: '❄️',
+            80: '🌦️', 81: '🌦️', 82: '🌧️',
+            95: '⛈️', 96: '⛈️', 99: '⛈️'
+        };
+
+        // 趣味文案生成
+        function getFunMessage(temp) {
+            if (temp <= 0) return "🥶 天寒地冻，宜火锅、忌出门。";
+            if (temp <= 10) return "🧣 冷风拂面，记得围巾加持。";
+            if (temp <= 20) return "🍃 温度恰好，散步最佳。";
+            if (temp <= 28) return "☕ 适合来杯冰美式，效率翻倍。";
+            if (temp <= 35) return "🍉 西瓜空调，人间值得。";
+            return "🔥 热浪滚滚，小心中暑哦。";
+        }
+
+        // 渲染天气
+        function renderWeather(data, cityName) {
+            const temp = Math.round(data.current_weather.temperature);
+            const windSpeed = data.current_weather.windspeed;
+            const weatherCode = data.current_weather.weathercode;
+            const icon = weatherIconMap[weatherCode] || '🌈';
+            
+            // 提取可能的天气描述 (简化)
+            const descMap = {0:'晴朗',1:'晴间多云',2:'局部多云',3:'阴',45:'雾',51:'毛毛雨',61:'小雨',80:'阵雨'};
+            const desc = descMap[weatherCode] || '多云';
+            
+            const funMsg = getFunMessage(temp);
+            
+            const html = `
+                <div class="weather-main">
+                    <div class="temp-area">
+                        <span class="temp-value">${temp}</span>
+                        <span class="temp-unit">°C</span>
+                    </div>
+                    <div class="city-status">
+                        <span class="weather-icon">${icon}</span>
+                        <span>${cityName}</span>
+                    </div>
+                </div>
+                <div class="weather-desc">${desc}</div>
+                <div class="detail-grid">
+                    <div class="detail-chip"><i class="fas fa-wind"></i> 风速 ${windSpeed} km/h</div>
+                    <div class="detail-chip"><i class="fas fa-droplet"></i> 湿度 ${data.current_weather.relative_humidity || '--'}%</div>
+                    <div class="detail-chip"><i class="fas fa-eye"></i> 能见度 ${data.current_weather.visibility ? (data.current_weather.visibility/1000).toFixed(1)+'km' : '--'}</div>
+                </div>
+                <div class="fun-message"><i class="fas fa-message"></i> ${funMsg}</div>
+            `;
+            widget.innerHTML = html;
+        }
+
+        // 显示错误
+        function renderError(msg) {
+            widget.innerHTML = `<div class="error-placeholder"><i class="fas fa-triangle-exclamation"></i> ${msg}</div>`;
+        }
+
+        // 显示加载
+        function renderLoading() {
+            widget.innerHTML = `<div class="loading-placeholder"><i class="fas fa-spinner fa-pulse"></i> 读取云图...</div>`;
+        }
+
+        // 获取天气主流程
+        async function fetchWeather(city) {
+            renderLoading();
+            try {
+                // 1. 地理编码
+                const geoRes = await fetch(`${WEATHER_API_GEO}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+                if (!geoRes.ok) throw new Error('地理定位失败');
+                const geoData = await geoRes.json();
+                if (!geoData.results || geoData.results.length === 0) {
+                    throw new Error(`未找到城市 "${city}"，试试拼音或英文名`);
+                }
+                const location = geoData.results[0];
+                const { latitude, longitude, name, country } = location;
+                
+                // 2. 获取天气 (包含相对湿度等)
+                const weatherRes = await fetch(`${WEATHER_API_FORECAST}?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relativehumidity_2m,visibility&timezone=auto&forecast_days=1`);
+                if (!weatherRes.ok) throw new Error('天气数据获取失败');
+                const weatherData = await weatherRes.json();
+                
+                // 获取当前小时的湿度/能见度 (粗略：取第一个小时的数据)
+                if (weatherData.hourly) {
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    const humidityArray = weatherData.hourly.relativehumidity_2m;
+                    const visibilityArray = weatherData.hourly.visibility;
+                    if (humidityArray && humidityArray.length > 0) {
+                        weatherData.current_weather.relative_humidity = humidityArray[0];
+                    }
+                    if (visibilityArray && visibilityArray.length > 0) {
+                        weatherData.current_weather.visibility = visibilityArray[0];
+                    }
+                }
+                
+                renderWeather(weatherData, name + (country ? `, ${country}` : ''));
+            } catch (error) {
+                console.error(error);
+                renderError(error.message || '天气信息获取失败，请稍后重试');
+            }
+        }
+
+        // 搜索事件
+        function handleSearch() {
+            const city = cityInput.value.trim();
+            if (!city) {
+                renderError('请输入城市名');
+                return;
+            }
+            fetchWeather(city);
+        }
+
+        // 绑定事件
+        searchBtn.addEventListener('click', handleSearch);
+        cityInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
+
+        // 初始化：加载默认城市
+        fetchWeather(DEFAULT_CITY);
+
+        // ---------- 小趣味：背景视差效果 (鼠标移动时背景轻微偏移) ----------
+        document.body.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            const moveX = (x - 0.5) * 20;  // 最大偏移20px
+            const moveY = (y - 0.5) * 20;
+            document.body.style.backgroundPosition = `calc(50% + ${moveX}px) calc(50% + ${moveY}px)`;
+        });
+    })();
+</script>
+</body>
+</html>
